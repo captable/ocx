@@ -1,3 +1,4 @@
+import Logger from "../logging";
 import Big from "big.js";
 
 interface Issuance {
@@ -25,6 +26,12 @@ class TrancheCalculator {
       this.recalculate();
     }
     return this.value_;
+  }
+
+  public apply(txn: Issuance): void {
+    if (txn.security_id !== this.issuance_.security_id) {
+      Logger.warn("Ignoring TX_VESTING_EVENT for other security");
+    }
   }
 
   private recalculate() {
