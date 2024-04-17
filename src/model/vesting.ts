@@ -34,12 +34,15 @@ class TrancheCalculator {
     }
   }
 
-  private recalculate() {
+  private recalculate(): void {
+    const trancheDate = Date.parse(this.issuance_.date);
+
     this.value_ = [
       {
         date: this.issuance_.date,
         trancheShares: Big(this.issuance_.quantity),
-        accumulatedShares: Big(this.issuance_.quantity),
+        accumulatedShares:
+          trancheDate > Date.now() ? Big("0") : Big(this.issuance_.quantity),
       },
     ];
   }

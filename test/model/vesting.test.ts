@@ -15,7 +15,7 @@ const ISSUANCE = {
 };
 
 describe(Vesting.TrancheCalculator, () => {
-  // First we want to look at the simplest case: No VestingTerms at all
+  // First we want to look at the simplest case: No Vesting Terms at all
   describe("No Vesting Terms - 100% vested on issuance", () => {
     const subject = new Vesting.TrancheCalculator(ISSUANCE);
 
@@ -54,6 +54,25 @@ describe(Vesting.TrancheCalculator, () => {
         },
       ]);
     });
+
+    // This calculator is expected to also return tranches that have not yet been vested.
+    // For starters we'll test this by setting the security's issuance date far in the future.
+    // Eventually we'll add the ability to ask the TrancheCalculator to give us the tranches
+    // "as of" a particular date.
+    test("Includes unvested tranches", () => {
+      const subject = new Vesting.TrancheCalculator({
+        ...ISSUANCE,
+        date: "9999-12-31",
+      });
+
+      expect(subject.value).toEqual([
+        {
+          date: "9999-12-31",
+          trancheShares: Big("4800"),
+          accumulatedShares: Big("0"),
+        },
+      ]);
+    });
   });
 
   describe("Misuse conditions", () => {
@@ -87,6 +106,17 @@ describe(Vesting.TrancheCalculator, () => {
           accumulatedShares: Big("4800"),
         },
       ]);
+
+      // eslint-disable-next-line no-console
+      console.table(
+        subject.value.map((row) => {
+          return {
+            date: row.date,
+            trancheShares: row.trancheShares.toNumber(),
+            accumulatedShares: row.accumulatedShares.toNumber(),
+          };
+        })
+      );
       expect(mockLogger.warn).toHaveBeenCalledWith(
         "Ignoring TX_VESTING_EVENT for other security"
       );
